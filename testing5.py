@@ -9,9 +9,9 @@ import torch
 from collections import Counter, deque
 
 # === CONFIG ===
-CAR_MODEL_PATH = "models/testv3.pt"
-PLATE_MODEL_PATH = "models/plat_model/weights/best.pt"
-VIDEO_INPUT_PATH = os.path.join("assets", "testing_video6.mp4")
+CAR_MODEL_PATH = "models/best.pt"
+PLATE_MODEL_PATH = "models/yusuf/best.pt"
+VIDEO_INPUT_PATH = os.path.join("assets", "video_testing4.mp4")
 CONFIDENCE_THRESHOLD = 0.5
 
 # === LOAD MODELS AND OCR ===
@@ -75,7 +75,7 @@ def preprocess_plate(cropped):
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
     
     # increase contrast
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8,8))
     enhanced = clahe.apply(gray)
 
     # simple threshold
@@ -297,13 +297,13 @@ while cap.isOpened():
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
         # === Improved plate crop with margin
-        plate_h = (y2 - y1) // 3
+        plate_h = (y2 - y1) // 4
         plate_w = (x2 - x1) // 2
-        margin = 5
+        margin = 2
         plate_x1 = max(x1 + (x2 - x1 - plate_w) // 2 - margin, 0)
         plate_y1 = max(y2 - plate_h - margin, 0)
-        plate_x2 = min(plate_x1 + plate_w + margin * 2, frame.shape[1])
-        plate_y2 = min(plate_y1 + plate_h + margin * 2, frame.shape[0])
+        plate_x2 = min(plate_x1 + plate_w + margin, frame.shape[1])
+        plate_y2 = min(plate_y1 + plate_h + margin, frame.shape[0])
 
         # Draw plate region outline on display frame
         cv2.rectangle(display_frame, (plate_x1, plate_y1), (plate_x2, plate_y2), (0, 255, 255), 1)
