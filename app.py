@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, send_file
+from flask import Flask, render_template, Response, send_file, request, redirect, url_for
 import cv2
 import os
 import numpy as np
@@ -8,16 +8,21 @@ import datetime
 from ultralytics import YOLO
 import torch
 from collections import Counter, deque
-import io
-from threading import Thread
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
 # === CONFIG ===
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CAR_MODEL_PATH = "models/testv3.pt"
 PLATE_MODEL_PATH = "models/plat_model/weights/best.pt"
-VIDEO_INPUT_PATH = os.path.join("assets", "video_testing4.mp4")
 CONFIDENCE_THRESHOLD = 0.5
+
+# Ensure upload and output directories exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
 
 # === LOAD MODELS AND OCR ===
 car_model = YOLO(CAR_MODEL_PATH)
@@ -48,6 +53,9 @@ label_colors = {
     'bus': (0, 0, 255),
     'van': (255, 255, 0)
 }
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def preprocess_plate(cropped):
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
@@ -98,13 +106,13 @@ def assess_track_quality(track_id, detection_count, is_detected):
     quality = track_quality[track_id]['detections'] / track_quality[track_id]['count']
     return quality
 
-def process_and_save():
+def process_and_save(video_path):
     global vehicle_count, counted_ids, plate_history
     vehicle_count = 0
     counted_ids = set()
     plate_history = {}
 
-    cap = cv2.VideoCapture(VIDEO_INPUT_PATH)
+    cap = cv2.VideoCapture(video_path)
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -118,7 +126,6 @@ def process_and_save():
     VIDEO_OUTPUT_PATH = os.path.join("outputs", output_video_filename)
     LOG_OUTPUT_PATH = os.path.join("outputs", "logs.txt")
 
-    os.makedirs("outputs", exist_ok=True)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(VIDEO_OUTPUT_PATH, fourcc, fps, (frame_width, frame_height))
 
@@ -325,13 +332,13 @@ def process_and_save():
 
     return VIDEO_OUTPUT_PATH, LOG_OUTPUT_PATH
 
-def generate_frames():
+def generate_frames(video_path):
     global vehicle_count, counted_ids, plate_history
     vehicle_count = 0
     counted_ids = set()
     plate_history = {}
 
-    cap = cv2.VideoCapture(VIDEO_INPUT_PATH)
+    cap = cv2.VideoCapture(video_path)
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -533,21 +540,46 @@ def generate_frames():
 def index():
     return render_template('index.html')
 
-@app.route('/save')
+@app.route('/save', methods=['GET', 'POST'])
 def save():
-    def run_save():
-        video_path, log_path = process_and_save()
-        return video_path, log_path
-    video_path, log_path = run_save()
-    return render_template('save.html', video_path=video_path, log_path=log_path)
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return render_template('save.html', error="No file part")
+        file = request.files['file']
+        if file.filename == '':
+            return render_template('save.html', error="No file selected")
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(video_path)
+            output_video_path, log_path = process_and_save(video_path)
+            return render_template('save.html', video_path=output_video_path, log_path=log_path)
+        else:
+            return render_template('save.html', error="Invalid file format. Please upload mp4, avi, or mov")
+    return render_template('save.html')
 
-@app.route('/realtime')
+@app.route('/realtime', methods=['GET', 'POST'])
 def realtime():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return render_template('realtime.html', error="No file part")
+        file = request.files['file']
+        if file.filename == '':
+            return render_template('realtime.html', error="No file selected")
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(video_path)
+            return render_template('realtime.html', video_uploaded=True, video_path=video_path)
+        else:
+            return render_template('realtime.html', error="Invalid file format. Please upload mp4, avi, or mov")
     return render_template('realtime.html')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed/<path:video_path>')
+def video_feed(video_path):
+    if not os.path.exists(video_path):
+        return Response("Video not found", status=404)
+    return Response(generate_frames(video_path), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
