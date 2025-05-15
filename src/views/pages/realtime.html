@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Car Detection AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-4xl space-y-6">
+        <div class="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
+            <video id="cameraFeed" class="w-full h-full object-cover" autoplay muted playsinline></video>
+        </div>
+
+        <div class="flex flex-wrap gap-4 justify-center">
+            <button id="startBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
+                Start Camera
+            </button>
+            <button id="stopBtn"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
+                Stop Camera
+            </button>
+            <button id="processBtn"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
+                Process with AI
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('cameraFeed');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const processBtn = document.getElementById('processBtn');
+
+        let stream;
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        });
+
+        processBtn.addEventListener('click', () => {
+            alert('Processing with AI...');
+            // Placeholder: Integrate your AI call here
+        });
+    </script>
+</body>
+
+</html>
