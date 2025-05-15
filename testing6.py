@@ -12,7 +12,7 @@ import statistics
 # === CONFIG ===
 CAR_MODEL_PATH = "models/vehicle_model(detrac-16)/weights/best.pt"
 PLATE_MODEL_PATH = "models/plat_model/weights/best.pt"
-VIDEO_INPUT_PATH = os.path.join("assets", "video_testing4.mp4")
+VIDEO_INPUT_PATH = os.path.join("assets", "video_testing5.mp4")
 
 # Create unique output filenames
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

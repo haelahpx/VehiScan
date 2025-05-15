@@ -11,7 +11,7 @@ from collections import Counter, deque
 # === CONFIG ===
 CAR_MODEL_PATH = "models/testv3.pt"
 PLATE_MODEL_PATH = "models/plat_model/weights/best.pt"
-VIDEO_INPUT_PATH = os.path.join("assets", "video_testing4.mp4")
+VIDEO_INPUT_PATH = os.path.join("assets", "testing_video6.mp4")
 CONFIDENCE_THRESHOLD = 0.5
 
 # === LOAD MODELS AND OCR ===
@@ -376,11 +376,29 @@ while cap.isOpened():
                 thumb_x = x2 - thumb_w - 5
                 thumb_y = y1 + 5
 
-                if thumb_x >= x1 and thumb_y + thumb_h <= y2:
+                # Ensure the thumbnail fits within the vehicle box and display frame
+                thumb_x = max(x1, thumb_x)  # Don't go left of vehicle box
+                thumb_y = max(y1, thumb_y)   # Don't go above vehicle box
+                
+                # Adjust width if needed to fit in available space
+                available_width = x2 - thumb_x - 5
+                if available_width < thumb_w:
+                    thumb_w = available_width
+                
+                # Adjust height if needed to fit in available space
+                available_height = y2 - thumb_y - 5
+                if available_height < thumb_h:
+                    thumb_h = available_height
+                
+                # Only draw if we have reasonable dimensions
+                if thumb_w > 10 and thumb_h > 10:
                     thumb_img = cv2.resize(enlarged, (thumb_w, thumb_h))
                     cv2.rectangle(display_frame, (thumb_x, thumb_y), (thumb_x + thumb_w, thumb_y + thumb_h), (0, 255, 255), 1)
-                    h, w = thumb_img.shape[:2]
-                    display_frame[thumb_y:thumb_y + h, thumb_x:thumb_x + w] = thumb_img
+                    
+                    # Ensure the thumbnail fits in the display frame
+                    if (thumb_x + thumb_w <= display_frame.shape[1] and 
+                        thumb_y + thumb_h <= display_frame.shape[0]):
+                        display_frame[thumb_y:thumb_y + thumb_h, thumb_x:thumb_x + thumb_w] = thumb_img
 
     # Remove old tracks
     to_remove = [tid for tid in previous_positions if tid not in current_ids]

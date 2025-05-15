@@ -52,9 +52,7 @@ class TrafficMonitoringSystem:
             'car': (0, 255, 0),
             'truck': (255, 0, 0),
             'bus': (0, 0, 255),
-            'van': (255, 255, 0),
-            'motorcycle': (255, 0, 255),
-            'bicycle': (0, 255, 255)
+            'van': (255, 255, 0)
         }
         
     def setup_paths(self):

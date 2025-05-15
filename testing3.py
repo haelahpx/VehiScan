@@ -6,7 +6,7 @@ import pytesseract
 vehicle_model = YOLO("models/vehicle_model(detrac-16)/weights/best.pt")
 plate_model = YOLO("models/plat_model/weights/best.pt")
 
-cap = cv2.VideoCapture("assets/testing_video2.mp4")
+cap = cv2.VideoCapture("assets/testing_video6.mp4")
 
 vehicle_count = 0
 counted_centers = []

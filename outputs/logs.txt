@@ -1,0 +1,34 @@
+
+=== Processed at 2025-05-12 11:24:37.635241 ===
+Processed Video: outputs\video_result_20250512_112257.mp4
+Total Vehicles Counted: 1
+Detected Plates:
+  ID 5: Even
+  ID 7: MA L8LL CC
+  ID 11: 3574
+  ID 14: JOAF
+  ID 15: JOAE
+  ID 16: 93 FSG
+  ID 17: 93 FSG
+  ID 18: 93 FSG
+  ID 19: 93 FSG
+  ID 20: 3574 BNW
+  ID 21: 593 FSG
+  ID 25: 693 FSG
+  ID 26: 3693 FSG
+  ID 27: 693 FSG
+  ID 28: 0262 HFP
+  ID 29: [8934FR
+  ID 31: 3693 FSG
+  ID 33: 5280 DLY
+  ID 38: 9916 GHS
+  ID 39: Even
+  ID 41: (Even
+  ID 43: L HGL
+  ID 44: 1024 DRJ
+  ID 46: 817L HGL
+  ID 49: L23LDZK
+  ID 50: 0526 HGN
+  ID 51: L557 JMF
+  ID 52: 5739 JMC]
+========================================
