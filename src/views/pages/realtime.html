@@ -13,13 +13,28 @@
             font-family: 'Inter', sans-serif;
             background-color: #F8FAFC;
         }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body class="min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-4xl space-y-6">
         <div class="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
-            <video id="cameraFeed" class="w-full h-full object-cover" autoplay muted playsinline></video>
+            <video id="cameraFeed" class="w-full h-full object-cover" autoplay muted playsinline controls></video>
         </div>
 
         <div class="flex flex-wrap gap-4 justify-center">
@@ -31,6 +46,15 @@
                 class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
                 Stop Camera
             </button>
+            
+            <div class="file-input-wrapper">
+                <button
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
+                    Upload Video
+                </button>
+                <input type="file" id="videoUpload" accept="video/*" />
+            </div>
+            
             <button id="processBtn"
                 class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow">
                 Process with AI
@@ -43,11 +67,15 @@
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const processBtn = document.getElementById('processBtn');
+        const videoUpload = document.getElementById('videoUpload');
 
         let stream;
 
         startBtn.addEventListener('click', async () => {
             try {
+                // Stop any playing video file first
+                video.src = '';
+                
                 stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
             } catch (err) {
@@ -59,6 +87,30 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
+            }
+        });
+
+        videoUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            
+            if (file) {
+                // Stop the camera stream if it's active
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.srcObject = null;
+                }
+                
+                // Create a URL for the video file
+                const videoURL = URL.createObjectURL(file);
+                
+                // Set the video source to the file
+                video.srcObject = null;
+                video.src = videoURL;
+                
+                // Play the video
+                video.play().catch(error => {
+                    console.error("Error playing the video:", error);
+                });
             }
         });
 
