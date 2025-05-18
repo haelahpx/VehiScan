@@ -25,7 +25,7 @@ CONFIG = {
     'PLATE_CONFIDENCE_THRESHOLD': 0.4,
     'DEFAULT_FRAME_WIDTH': 1280,
     'DEFAULT_FRAME_HEIGHT': 720,
-    'VIDEO_URL': 'https://pbcvideostreams1.pbc.gov/memfs/e118556c-b7ba-4a16-9d17-8c7931343022.m3u8',
+    'VIDEO_URL': 'https://pbcvideostreams1.pbc.gov/memfs/c4409ce1-c22e-4e4b-8205-d0da82b33165.m3u8',
     'FRAME_SKIP_FACTOR': 0,  # Process every frame  
 }
 
@@ -77,6 +77,7 @@ class ProcessingState:
         self.track_quality = {}
         self.vehicle_directions = {}
         self.plate_history = {}
+        self.global_counted_ids = set()  # Track all counted IDs across all zones
 
 realtime_state = ProcessingState()
 upload_state = ProcessingState()
@@ -89,18 +90,36 @@ def determine_counting_line(frame_height, frame_width):
             'line_start': (0, int(frame_height * 0.6)),
             'line_end': (frame_width, int(frame_height * 0.6)),
             'direction': 'bottom',
-            'name': 'Horizontal Line',
+            'name': 'Horizontal Line Bottom',
             'count': 0,
             'color': (255, 255, 0),
             'counted_ids': set()
         },
         {
-            'line_start': (int(frame_width * 0.5), 0),
-            'line_end': (int(frame_width * 0.5), frame_height),
+            'line_start': (0, int(frame_height * 0.4)),
+            'line_end': (frame_width, int(frame_height * 0.4)),
+            'direction': 'top',
+            'name': 'Horizontal Line Top',
+            'count': 0,
+            'color': (255, 0, 255),
+            'counted_ids': set()
+        },
+        {
+            'line_start': (int(frame_width * 0.6), 0),
+            'line_end': (int(frame_width * 0.6), frame_height),
             'direction': 'right',
-            'name': 'Vertical Line',
+            'name': 'Vertical Line Right',
             'count': 0,
             'color': (0, 255, 255),
+            'counted_ids': set()
+        },
+        {
+            'line_start': (int(frame_width * 0.4), 0),
+            'line_end': (int(frame_width * 0.4), frame_height),
+            'direction': 'left',
+            'name': 'Vertical Line Left',
+            'count': 0,
+            'color': (255, 0, 0),
             'counted_ids': set()
         }
     ]
@@ -224,7 +243,13 @@ def determine_movement_direction(state, track_id, center_x, center_y):
     last_x, last_y = state.vehicle_directions[track_id]['positions'][-1]
     dx = last_x - first_x
     dy = last_y - first_y
-    direction = "right" if abs(dx) > abs(dy) and dx > 0 else "left" if abs(dx) > abs(dy) else "bottom" if dy > 0 else "top"
+    
+    # Determine primary direction based on movement
+    if abs(dx) > abs(dy):  # Horizontal movement
+        direction = "right" if dx > 0 else "left"
+    else:  # Vertical movement
+        direction = "bottom" if dy > 0 else "top"
+    
     state.vehicle_directions[track_id]['direction'] = direction
     return direction
 
@@ -232,26 +257,39 @@ def check_line_crossing(state, track_id, center_x, center_y, zone, quality):
     if track_id not in state.previous_positions:
         state.previous_positions[track_id] = (center_x, center_y)
         return False
+        
     prev_x, prev_y = state.previous_positions[track_id]
     state.previous_positions[track_id] = (center_x, center_y)
+    
     x1, y1 = zone['line_start']
     x2, y2 = zone['line_end']
-    if quality < 0.5 or track_id in zone['counted_ids']:
+    
+    if quality < 0.5:
         return False
-    if y1 == y2:  # Horizontal
+        
+    # Check if this ID has already been counted in any zone
+    if track_id in state.global_counted_ids:
+        return False
+    
+    crossed = False
+    
+    if y1 == y2:  # Horizontal line
         if (prev_y < y1 and center_y >= y1) or (prev_y > y1 and center_y <= y1):
             crossed_direction = "bottom" if center_y > prev_y else "top"
-            if zone['direction'] == 'any' or zone['direction'] == crossed_direction:
-                zone['counted_ids'].add(track_id)
-                zone['count'] += 1
-                return True
-    elif x1 == x2:  # Vertical
+            if zone['direction'] == crossed_direction:
+                crossed = True
+    elif x1 == x2:  # Vertical line
         if (prev_x < x1 and center_x >= x1) or (prev_x > x1 and center_x <= x1):
             crossed_direction = "right" if center_x > prev_x else "left"
-            if zone['direction'] == 'any' or zone['direction'] == crossed_direction:
-                zone['counted_ids'].add(track_id)
-                zone['count'] += 1
-                return True
+            if zone['direction'] == crossed_direction:
+                crossed = True
+    
+    if crossed:
+        zone['counted_ids'].add(track_id)
+        state.global_counted_ids.add(track_id)
+        zone['count'] += 1
+        return True
+        
     return False
 
 def process_frame(frame, frame_number, total_frames, writer, page, image_ref, state):
