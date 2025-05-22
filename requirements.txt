@@ -1,0 +1,9 @@
+flet
+opencv-python
+numpy
+ffmpeg-python
+Pillow
+ultralytics
+easyocr
+boto3
+botocore
