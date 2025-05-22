@@ -1,7 +1,8 @@
 # Vehiscan - Vehicle Detection and License Plate Recognition System
 ## lapis project final
 
-![Vehiscan Demo] ![image](https://github.com/user-attachments/assets/0fa5a425-683e-4b47-bc41-34040e3328e2)
+[Vehiscan Demo]
+![image](https://github.com/user-attachments/assets/0fa5a425-683e-4b47-bc41-34040e3328e2)
 
 
 Vehiscan is an advanced vehicle detection and license plate recognition system that utilizes computer vision and deep learning to monitor traffic, count vehicles, and identify license plates in real-time or from uploaded videos.
