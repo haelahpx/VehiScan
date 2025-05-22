@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 # Initialize models
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 logger.info(f"Using device: {device}")
-
+    
 # Helper functions for S3 operations
 def upload_to_s3(file_path, s3_key):
     """Upload a file to S3 bucket"""
