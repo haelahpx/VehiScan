@@ -31,19 +31,24 @@ Vehiscan is an advanced vehicle detection and license plate recognition system t
 
 ### 🔧 Installation & Setup
 
-1. Clone the SORT tracking repository (used for tracking vehicles):
+1. **Clone this repository** (the main project):
+   ```bash
+   git clone (https://github.com/haelahpx/VehiScan.git)
+   cd VehiScan
+
+2. **Clone the SORT tracking repository** (used for tracking vehicles):
    ```bash
    gh repo clone abewley/sort
    ```
 
-2. Download or make sure you have the `requirements.txt` file for this project.
+3. **Download or make sure you have the `requirements.txt` file for this project**.
 
-3. Install the required dependencies:
+4. **Install the required dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Run the application:
+5. **Run the application**:
    ```bash
    python main.py
    ```
