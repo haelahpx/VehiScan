@@ -39,8 +39,8 @@ CONFIG = {
 
 # Add this to your CONFIG section
 AWS_CONFIG = {
-    'AWS_ACCESS_KEY_ID': 'AKIASEFYCFTAWGH7U4TL',  # Should be set as environment variables
-    'AWS_SECRET_ACCESS_KEY': 'Yq/O/8J8aoXsLdSanQCPcvee/MzYYsUyHxB3sw6Z',
+    'AWS_ACCESS_KEY_ID': 'xxx',  # Should be set as environment variables
+    'AWS_SECRET_ACCESS_KEY': 'xxx',
     'AWS_REGION': 'ap-southeast-3',  # Best for Indonesia (Jakarta)
     'S3_BUCKET_NAME': 'vehiscan',
     'S3_PROCESSED_VIDEOS_FOLDER': 'processed_videos/',
